@@ -2,9 +2,9 @@
 
 set -e
 
-echo "=================================================="
-echo "    BlockAssist Kurulum Scripti Başlatılıyor     "
-echo "=================================================="
+echo "======================================================"
+echo "   Bu Script Ufuk Degen Tarafından Hazırlanmıştır!    "
+echo "======================================================"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -115,9 +115,25 @@ print_success "Python 3.10.12 kuruldu ve aktifleştirildi"
 
 print_status "Adım 8: Python paketleri kuruluyor..."
 python -m pip install --upgrade pip
+
+print_status "readchar sistem paketi kuruluyor..."
+sudo apt install -y python3-readchar python3-pip python3-dev
+
+print_status "Python paketleri pip ile kuruluyor..."
+python -m pip install psutil --force-reinstall --no-cache-dir
+python -m pip install readchar --force-reinstall --no-cache-dir
+python -m pip install keyboard --no-cache-dir
+
+print_status "BlockAssist paketleri kuruluyor..."
 python -m pip install -e . --no-cache-dir
 python -m pip install "mbag-gensyn[malmo]" --no-cache-dir
-python -m pip install psutil readchar
+
+print_status "Python kurulumunu test ediliyor..."
+python -c "import readchar; print('readchar OK')" || {
+    print_warning "readchar sorunu devam ediyor, alternative yüklenecek"
+    python -m pip install pynput --no-cache-dir
+}
+
 print_success "Python paketleri kuruldu"
 
 print_status "Ortam değişkenleri ayarlanıyor..."
@@ -144,12 +160,13 @@ echo -e "${YELLOW}ÇALIŞTIRMAK İÇİN:${NC}"
 echo "Aşağıdaki komutları çalıştırın:"
 echo ""
 echo -e "${BLUE}cd blockassist${NC}"
+echo -e "${BLUE}source ~/.bashrc${NC}"
 echo -e "${BLUE}python run.py${NC}"
 echo ""
 echo -e "${YELLOW}UYARI:${NC}"
 echo "• Program size Hugging Face token'ı soracak"
 echo "• Token girdikten sonra tarayıcınızı açın"
-echo "• http://localhost:3000 adresine gidin ve Gensyn hesabınızla giriş yapın"
+echo "• http://localhost:3000 adresine gidin ve mail adresinizle giriş yapın"
 echo "• Minecraft pencerelerinin açılmasını bekleyin"
 echo "• Terminal'de ENTER'a basın ve oyunu oynayın"
 echo ""
