@@ -2,9 +2,9 @@
 
 set -e
 
-echo "======================================================"
-echo "   Bu Script Ufuk Degen Tarafından Hazırlanmıştır!    "
-echo "======================================================"
+echo "=================================================="
+echo "    BlockAssist Kurulum Scripti Başlatılıyor     "
+echo "=================================================="
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -91,20 +91,23 @@ print_success "Java kuruldu"
 print_status "Adım 6: pyenv kuruluyor..."
 if [ ! -d "$HOME/.pyenv" ]; then
     curl https://pyenv.run | bash > /dev/null 2>&1
-    export PYENV_ROOT="$HOME/.pyenv"
-    export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init --path)" > /dev/null 2>&1
-    eval "$(pyenv init -)" > /dev/null 2>&1
-    print_success "pyenv kuruldu"
-else
-    export PYENV_ROOT="$HOME/.pyenv"
-    export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init --path)" > /dev/null 2>&1
-    eval "$(pyenv init -)" > /dev/null 2>&1
-    print_success "pyenv zaten kurulu"
 fi
 
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)" 2>/dev/null || true
+
+print_success "pyenv kuruldu ve yapılandırıldı"
+
 print_status "Adım 7: Python 3.10 kuruluyor..."
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)" 2>/dev/null || true
+
 if ! pyenv versions | grep -q "3.10"; then
     print_status "Python 3.10.12 indiriliyor ve kuruluyor... (Bu biraz zaman alabilir)"
     pyenv install 3.10.12
@@ -116,22 +119,26 @@ print_success "Python 3.10.12 kuruldu ve aktifleştirildi"
 print_status "Adım 8: Python paketleri kuruluyor..."
 python -m pip install --upgrade pip
 
-print_status "readchar sistem paketi kuruluyor..."
-sudo apt install -y python3-readchar python3-pip python3-dev
-
-print_status "Python paketleri pip ile kuruluyor..."
+print_status "readchar için alternatif çözümler deneniyor..."
+sudo apt install -y python3-dev build-essential || true
 python -m pip install psutil --force-reinstall --no-cache-dir
-python -m pip install readchar --force-reinstall --no-cache-dir
-python -m pip install keyboard --no-cache-dir
+
+print_status "readchar kuruluyor (birden fazla yöntemle)..."
+python -m pip install readchar --force-reinstall --no-cache-dir || {
+    print_warning "pip ile readchar kurulamadı, alternatif yöntemler deneniyor..."
+    python -m pip install keyboard --no-cache-dir
+    python -m pip install pynput --no-cache-dir
+    python -m pip install getch --no-cache-dir
+}
 
 print_status "BlockAssist paketleri kuruluyor..."
 python -m pip install -e . --no-cache-dir
 python -m pip install "mbag-gensyn[malmo]" --no-cache-dir
 
 print_status "Python kurulumunu test ediliyor..."
-python -c "import readchar; print('readchar OK')" || {
-    print_warning "readchar sorunu devam ediyor, alternative yüklenecek"
-    python -m pip install pynput --no-cache-dir
+python -c "import readchar; print('readchar başarıyla kuruldu')" || {
+    print_warning "readchar hala sorunlu, but script devam edecek"
+    python -c "import sys; print('Python path:', sys.path)"
 }
 
 print_success "Python paketleri kuruldu"
@@ -144,6 +151,7 @@ print_status "Ortam değişkenleri ayarlanıyor..."
     echo 'export PATH="$PYENV_ROOT/bin:$PATH"'
     echo 'eval "$(pyenv init --path)"'
     echo 'eval "$(pyenv init -)"'
+    echo 'eval "$(pyenv virtualenv-init -)" 2>/dev/null || true'
     echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"'
 } >> ~/.bashrc
 
@@ -160,13 +168,12 @@ echo -e "${YELLOW}ÇALIŞTIRMAK İÇİN:${NC}"
 echo "Aşağıdaki komutları çalıştırın:"
 echo ""
 echo -e "${BLUE}cd blockassist${NC}"
-echo -e "${BLUE}source ~/.bashrc${NC}"
 echo -e "${BLUE}python run.py${NC}"
 echo ""
 echo -e "${YELLOW}UYARI:${NC}"
 echo "• Program size Hugging Face token'ı soracak"
 echo "• Token girdikten sonra tarayıcınızı açın"
-echo "• http://localhost:3000 adresine gidin ve mail adresinizle giriş yapın"
+echo "• http://localhost:3000 adresine gidin ve mailiniz ile giriş yapın"
 echo "• Minecraft pencerelerinin açılmasını bekleyin"
 echo "• Terminal'de ENTER'a basın ve oyunu oynayın"
 echo ""
